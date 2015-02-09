@@ -4,22 +4,65 @@ output:
   html_document:
     keep_md: true
 ---
+## Loading dependencies
+```{r}
+library(lattice)
+```
 
 
-## Loading and preprocessing the data
-
-
+## Loading and data preprocessing the data
+```{r}
+activity<-read.csv("activity.csv",stringsAsFactors =FALSE)
+activity$date<-as.Date(strptime(activity$date,"%Y-%m-%d"))
+activity$weekdayNum<-as.POSIXlt(activity$date)$wday
+activity$weekday<-weekdays(activity$date,abbreviate = T)
+activity$weekendFlag<-ifelse(activity$weekdayNum %in% c(0,6),"weekend","weekday")
+```
+#### Splitting incomplete & complete observations
+```{r}
+activityComplete<-activity[complete.cases(activity),]
+activityInComplete<-activity[!complete.cases(activity),]
+```
 
 ## What is mean total number of steps taken per day?
-
-
+```{r}
+activityDailySum<-aggregate(steps~date,activityComplete,sum)
+histogram(activityDailySum$steps,xlab="Number of steps",breaks = 10)
+mean(activityDailySum$steps)
+median(activityDailySum$steps)
+```
 
 ## What is the average daily activity pattern?
-
+```{r}
+activityIntAvg<-aggregate(steps~interval,activityComplete,mean)
+xyplot(steps ~ interval,data=activityIntAvg,type="l",xlab="Interval",ylab="Number of steps")
+activityIntAvg$interval[which(activityIntAvg$steps==max(activityIntAvg$steps))]
+```
 
 
 ## Imputing missing values
 
+### Total missing values
+```{r}
+nrow(activityInComplete)
+```
+### Compute means for weekdays & impute values
+```{r}
+meansImpute<-aggregate(steps~interval+weekdayNum,activityComplete,mean)
+activityInComplete<-activityInComplete[,-c(1)]
+activityImpute<-merge(activityInComplete,meansImpute,all.x=TRUE)
+activityImpute<-rbind(activityComplete,activityImpute[,c(6,3,1,2,4,5)])
 
+activityDailySum<-aggregate(steps~date,activityImpute,sum)
+histogram(activityDailySum$steps,xlab="Number of steps",breaks = 10)
+mean(activityDailySum$steps)
+```
+### We notice the mean of imputed dataset are higher than originial by about 50 steps, reason:?
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r}
+activityIntWeekAvg<-aggregate(steps~interval+weekendFlag,activityComplete,mean)
+xyplot(steps ~ interval | weekendFlag,data=activityIntWeekAvg,layout=c(1,2),type="l",xlab="Interval",ylab="Number of steps")
+```
+
+#### On weekends activity levels seems higher & consitent than weekdays possibly due to more outdoor activities
