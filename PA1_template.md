@@ -1,4 +1,9 @@
-# Reproducible Research: Peer Assessment 1
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: 
+  html_document:
+    keep_md: true
+---
 ## Loading dependencies
 
 ```r
@@ -56,10 +61,11 @@ nrow(activityInComplete)
 
 ```r
 activityDailySum<-aggregate(steps~date,activityComplete,sum)
-histogram(activityDailySum$steps,xlab="Number of steps",ylab="Frequency",breaks = 10)
+histogram(activityDailySum$steps,xlab="Number of steps",ylab="Frequency",breaks = 10,
+          ,main="No. of steps (missing values ignored)")
 ```
 
-![](./PA1_template_files/figure-html/Q1-1.png) 
+![plot of chunk Q1](figure/Q1-1.png) 
 
 ```r
 mean(activityDailySum$steps)
@@ -81,10 +87,12 @@ median(activityDailySum$steps)
 
 ```r
 activityIntAvg<-aggregate(steps~interval,activityComplete,mean)
-xyplot(steps ~ interval,data=activityIntAvg,type="l",xlab="Interval",ylab="Number of steps")
+xyplot(steps ~ interval,data=activityIntAvg,type="l",xlab="Interval",ylab="Number of steps"
+       ,main="No. of steps (missing values ignored)")
 ```
 
-![](./PA1_template_files/figure-html/Q2-1.png) 
+![plot of chunk Q2](figure/Q2-1.png) 
+### Interval with the maximum number of average steps
 
 ```r
 activityIntAvg$interval[which(activityIntAvg$steps==max(activityIntAvg$steps))]
@@ -93,7 +101,7 @@ activityIntAvg$interval[which(activityIntAvg$steps==max(activityIntAvg$steps))]
 ```
 ## [1] 835
 ```
-#### The above interval has the maximum number of stemps
+
 
 ## Imputing missing values
 
@@ -130,14 +138,14 @@ nrow(activityImpute)
 ```
 #### Row counts shows there could not be any data loss.
 
-### Histogram of total number of stemps and computed means & medians after missing values are imputed
+### Histogram of total number of steps and computed means & medians after missing values are imputed
 
 ```r
 activityDailySum<-aggregate(steps~date,activityImpute,sum)
-histogram(activityDailySum$steps,xlab="Number of steps",breaks = 10,main="No. of steps (missing values ignored)")
+histogram(activityDailySum$steps,xlab="Number of steps",breaks = 10)
 ```
 
-![](./PA1_template_files/figure-html/Q3-1.png) 
+![plot of chunk Q3](figure/Q3-1.png) 
 
 ```r
 mean(activityDailySum$steps)
@@ -155,15 +163,16 @@ median(activityDailySum$steps)
 ## [1] 11015
 ```
 
-#### We notice the mean of imputed dataset are higher than originial by about 50 steps, reason:?
+#### We notice the mean of imputed dataset are higher than non imputed by about 50 steps. This is because the daily average for the missing days (weekdays) is higher than the daily averages of non missing days.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 ```r
 activityIntWeekAvg<-aggregate(steps~interval+weekendFlag,activityComplete,mean)
-xyplot(steps ~ interval | weekendFlag,data=activityIntWeekAvg,layout=c(1,2),type="l",xlab="Interval",ylab="Number of steps")
+xyplot(steps ~ interval | weekendFlag,data=activityIntWeekAvg,
+       layout=c(1,2),type="l",xlab="Interval",ylab="Number of steps")
 ```
 
-![](./PA1_template_files/figure-html/Q4-1.png) 
+![plot of chunk Q4](figure/Q4-1.png) 
 
-#### On weekends activity levels seems consitent and higher than weekdays, possibly due to more outdoor activities
+#### On weekends activity levels seems consitent and higher than weekdays, possibly due to more outdoor activities.

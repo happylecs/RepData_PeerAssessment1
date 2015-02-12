@@ -11,7 +11,7 @@ library(lattice)
 
 
 ## Loading and data preprocessing the data
-```{r}
+```{r loadData}
 activity<-read.csv("activity.csv",stringsAsFactors =FALSE)
 activity$date<-as.Date(strptime(activity$date,"%Y-%m-%d"))
 activity$weekdayNum<-as.POSIXlt(activity$date)$wday
@@ -19,13 +19,13 @@ activity$weekday<-weekdays(activity$date,abbreviate = T)
 activity$weekendFlag<-as.factor(ifelse(activity$weekdayNum %in% c(0,6),"weekend","weekday"))
 ```
 #### Summary loaded data set
-```{r}
+```{r summary}
 str(activity)
 ```
 
 
 #### Splitting incomplete & complete observations
-```{r}
+```{r splitNulls}
 activityComplete<-activity[complete.cases(activity),]
 activityInComplete<-activity[!complete.cases(activity),]
 nrow(activityComplete)
@@ -35,7 +35,8 @@ nrow(activityInComplete)
 ## What is mean total number of steps taken per day?
 ```{r Q1}
 activityDailySum<-aggregate(steps~date,activityComplete,sum)
-histogram(activityDailySum$steps,xlab="Number of steps",ylab="Frequency",breaks = 10)
+histogram(activityDailySum$steps,xlab="Number of steps",ylab="Frequency",breaks = 10,
+          ,main="No. of steps (missing values ignored)")
 mean(activityDailySum$steps)
 median(activityDailySum$steps)
 ```
@@ -43,10 +44,14 @@ median(activityDailySum$steps)
 ## What is the average daily activity pattern?
 ```{r Q2}
 activityIntAvg<-aggregate(steps~interval,activityComplete,mean)
-xyplot(steps ~ interval,data=activityIntAvg,type="l",xlab="Interval",ylab="Number of steps")
+xyplot(steps ~ interval,data=activityIntAvg,type="l",xlab="Interval",ylab="Number of steps"
+       ,main="No. of steps (missing values ignored)")
+```
+### Interval with the maximum number of average steps
+```{r maxSteps}
 activityIntAvg$interval[which(activityIntAvg$steps==max(activityIntAvg$steps))]
 ```
-#### The above interval has the maximum number of stemps
+
 
 ## Imputing missing values
 
@@ -56,7 +61,7 @@ nrow(activityInComplete)
 ```
 
 ### Imputing Strategy: Compute means for each interval and weekday for the non missing data set. Impute the missing data with the means computed.
-```{r}
+```{r imputeValues}
 meansImpute<-aggregate(steps~interval+weekdayNum,activityComplete,mean)
 activityInComplete<-activityInComplete[,-c(1)]
 activityImpute<-merge(activityInComplete,meansImpute,all.x=TRUE)
@@ -66,20 +71,21 @@ nrow(activityImpute)
 ```
 #### Row counts shows there could not be any data loss.
 
-### Histogram of total number of stemps and computed means & medians after missing values are imputed
+### Histogram of total number of steps and computed means & medians after missing values are imputed
 ```{r Q3}
 activityDailySum<-aggregate(steps~date,activityImpute,sum)
-histogram(activityDailySum$steps,xlab="Number of steps",breaks = 10,main="No. of steps (missing values ignored)")
+histogram(activityDailySum$steps,xlab="Number of steps",breaks = 10)
 mean(activityDailySum$steps)
 median(activityDailySum$steps)
 ```
 
-#### We notice the mean of imputed dataset are higher than originial by about 50 steps, reason:?
+#### We notice the mean of imputed dataset are higher than non imputed by about 50 steps. This is because the daily average for the missing days (weekdays) is higher than the daily averages of non missing days.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 ```{r Q4}
 activityIntWeekAvg<-aggregate(steps~interval+weekendFlag,activityComplete,mean)
-xyplot(steps ~ interval | weekendFlag,data=activityIntWeekAvg,layout=c(1,2),type="l",xlab="Interval",ylab="Number of steps")
+xyplot(steps ~ interval | weekendFlag,data=activityIntWeekAvg,
+       layout=c(1,2),type="l",xlab="Interval",ylab="Number of steps")
 ```
 
-#### On weekends activity levels seems consitent and higher than weekdays, possibly due to more outdoor activities
+#### On weekends activity levels seems consitent and higher than weekdays, possibly due to more outdoor activities.
